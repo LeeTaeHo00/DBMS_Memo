@@ -1,0 +1,108 @@
+C언어
+
+구조체(STRUCTURE)
+	여러개의 다른 타입의 데이터를 하나로 묶을수 있는 사용자 정의 자료형
+
+선언	
+	struct 구조체명
+	{
+		데이터형 변수명;
+		데이터형 변수명2;	
+	};
+
+사용
+	main()
+	{
+		// 구조체 변수 선언
+		struct 구조체명 구조체변수명;
+
+		// 값대입
+		구조체변수명.변수명 = 값;
+		strcpy(person1.name, "홍길동"); -> 문자열 복사 함수
+	}
+
+
+
+2. typedef 구조체 간편사용
+	typedef struct
+	{
+		char name[20];
+		int age;	
+	}Person;
+
+
+사용
+	main()
+	{
+		Person p1;
+		strcpy(p1.name, "홍길동");
+	}
+
+3. char* 포인터로 선언(***)
+	struct Person
+	{
+		// const 상수
+		const char* name; // 포인터 문자열
+		int age;
+	}
+
+	main()
+	{
+		struct Person p1;
+		p1.name = "김영선"; // 직접대입가능(문자열수정불가능)
+	}
+
+
+3. 동적 메모리 할당
+
+int data[0][3] = {1,2,3,4,5,6,7,8,9}; 0행 0열부터 데이터가 순차적으로 들어감
+
+
+
+malloc();
+calloc(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+포인터
+	
