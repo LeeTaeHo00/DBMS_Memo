@@ -1,0 +1,183 @@
+-- 2번 : 서브쿼리
+
+-- 1) 연관 서브쿼리
+-- 최대 급여를 받는 직원 조회
+SELECT EMPLOYEE_ID, FIRST_NAME ,MAX(SALARY)
+FROM EMPLOYEES; -- 조회하려는 행의 개수가 달라서 오류 발생
+
+SELECT EMPLOYEE_ID, FIRST_NAME , SALARY
+FROM EMPLOYEES
+WHERE SALARY = 
+(
+	SELECT MAX(SALARY)
+	FROM EMPLOYEES
+);
+
+-- 2) 비연관 서브쿼리
+-- 각 직원의 급여가 부서별 평균 급여보다 높은 직원 조회
+
+-- 부서별 평균 급여ㅑ 조회
+SELECT DEPARTMENT_ID , AVG(SALARY)
+FROM EMPLOYEES
+GROUP BY DEPARTMENT_ID;
+
+-- (2) 각 직원의 급여 조회
+SELECT EMPLOYEE_ID, SALARY, DEPARTMENT_ID
+FROM EMPLOYEES
+
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME, e.SALARY , e.DEPARTMENT_ID
+FROM EMPLOYEES e
+WHERE e.SALARY > 
+(
+	SELECT AVG(SALARY)
+	FROM EMPLOYEES
+	WHERE E.DEPARTMENT_ID = DEPARTMENT_ID
+	GROUP BY e.DEPARTMENT_ID
+)
+ORDER BY E.DEPARTMENT_ID;
+
+-- 3) 단일 행 서브쿼리(서브쿼리으 ㅣ결과가 1개)
+-- 가장 오랜된 입사일을 가진 직원의 사원번호, 이름, 입사일 조회
+SELECT * FROM EMPLOYEES
+ORDER BY HIRE_DATE ASC;
+
+-- (1) 가장 오래된 입사일 조회
+SELECT MIN(HIRE_DaTE)
+
+-- (2) 서브 쿼리
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME , e.HIRE_DATE
+FROM EMPLOYEES e
+WHERE HIRE_DATE = (SELECT MIN(HIRE_DATE) FROM EMPLOYEES);
+
+-- (3) 서브쿼리
+-- 해당 부서에 특정 부서에 속한 직워 조횐
+
+-- 다중행 서브 쿼리 (서브쿼리의 결과가 여러 행을 반환)
+-- 특정 부서에 속한 직원 번호 이름, 부서번호
+
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME, e.DEPARTMENT_ID
+FROM EMPLOYEES e 
+WHERE e.DEPARTMENT_ID  IN 
+(
+	SELECT DEPARTMENT_ID
+	FROM EMPLOYEES
+	WHERE e.DEPARTMENT_ID = 60
+);
+
+-- 부서이름까지 같이 조회하고 싶다면 서브쿼리를 2번 쓰거나 JOIN을 이요ㅕㅇ해야한다.
+
+SELECT e.EMPLOYEE_ID , e.FIRST_NAME, e.DEPARTMENT_ID
+FROM EMPLOYEES e;
+
+SELECT d.DEPARTMENT_ID, d.DEPARTMENT_NAME
+FROM DEPARTMENTS d;
+
+SELECT e.EMPLOYEE_ID , e.FIRST_NAME , e.DEPARTMENT_ID,
+(	
+	SELECT d.DEPARTMENT_NAME
+	FROM DEPARTMENTs d
+	WHERE e.DEPARTMENT_ID = d.DEPARTMENT_ID
+) 부서명
+FROM EMPLOYEES e
+WHERE E.DEPARTMENT_ID IN (SELECT DEPARTMENT_ID FROM DEPARTMENTS WHERE DEPARTMENT_ID = 60);
+-- SQL Error [1427] [21000]: ORA-01427: single-row subquery returns more than one row   
+-- 단일 행 서브쿼리가 여러 행을 반환했기 때문에 에러가 발생함
+-- SELECT 절안에서 스칼라 서브쿼리를 사용하는 경우 해당 서브쿼리는 반드시 하나의 값(1행 1열)만 반환해야한다
+
+
+--SELECT E.EMPLOYEE_ID, E.FIRST_NAME, E.DEPARTMENT_ID, 
+   (SELECT D.DEPARTMENT_NAME
+   FROM DEPARTMENTS d
+   WHERE E.DEPARTMENT_ID = D.DEPARTMENT_ID)
+FROM EMPLOYEES E
+WHERE E.DEPARTMENT_ID IN (SELECT DEPARTMENT_ID 
+         FROM DEPARTMENTS
+         WHERE DEPARTMENT_ID = 60);
+
+
+---------------------------------------------------------------------------
+SELECT AVG(SALARY)
+FROM EMPLOYEES; -- 결과 1개 행
+
+SELECT AVG(SALARY), DEPARTMENT_ID
+FROM EMPLOYEES
+GROUP BY DEPARTMENT_ID;
+
+-- 메인 쿼리의 결과 행수보다 서브쿼리의 행의 수가 많으면 오류발생
+--SELECT AVG(SALARY), (SELECT * FROM EMPLOYEEs)
+--FROM EMPLOYEES;
+
+-- 서브쿼리 사용 시에는 * 전체를 조회하는 경우 앞에 테이블 별칭을 붙여서 테이블별칭 * 형태로 조회해야한다.
+SELECT E.*, (SELECT AVG(SALARY) FROM EMPLOYEES)
+FROM EMPLOYEES E;
+
+SELECT e.DEPARTMENT_ID, AVG(e.SALARY), (SELECT AVG(SALARY)FROM EMPLOYEES) "전체 평균 급여"
+FROM EMPLOYEES e
+GROUP BY e.DEPARTMENT_ID;
+
+
+-- SELECT 절 : 계산된 값 또는 추가 정보를 열로 표시
+-- 각 직원의 사원 번호, 이름, 급여와 해당 부서의 평균 급여 조회
+
+-- 메인쿼리(107행)
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME, e.SALARY
+FROM EMPLOYEES e;
+
+-- 해당 부서의 평균 급여 조회
+SELECT e.DEPARTMENT_ID, AVG(e.SALARY)
+FROM EMPLOYEES e
+GROUP BY e.DEPARTMENT_ID;
+
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME , SALARY , e.DEPARTMENT_ID ,
+(
+	SELECT AVG(SALARY) 
+	FROM EMPLOYEES e2
+	WHERE e2.DEPARTMENT_ID = e.DEPARTMENT_ID
+) "부서별 전체 평균"
+FROM EMPLOYEES e;
+
+-- 2. FROM 절 서브 쿼리 : 데이터 소스 역할, 주로 집계 데이터를 연결할 때 사용
+-- 부서별 평균급여를 계산하고 평균 급여보다 높은 직원 조회하기
+
+-- 부서별 평균 급여
+SELECT e.DEPARTMENT_ID, AVG(e.SALARY)
+FROM EMPLOYEES e
+GROUP BY e.DEPARTMENT_ID;
+
+
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME, e.SALARY, T.AVG_SALARY
+FROM EMPLOYEES e 
+	JOIN
+	(
+		SELECT e2.DEPARTMENT_ID, AVG(e2.SALARY) AVG_SALARY
+		FROM EMPLOYEES e2
+		GROUP BY e2.DEPARTMENT_ID
+	) T
+ON e.DEPARTMENT_ID  = t.DEPARTMENT_ID
+WHERE e.SALARY > t.AVG_SALARY;
+
+-- 3. WHERE 절 : 필터 조건으로 사용하여 데이터를 제한
+-- 급여가 전체 평균 이상인 직원 조회
+
+SELECT AVG(SALARY) FROM EMPLOYEES;
+
+SELECT e.EMPLOYEE_ID, e.FIRST_NAME, e.SALARY
+FROM EMPLOYEES e
+WHERE e.SALARY >= (SELECT AVG(SALARY) FROM EMPLOYEES);
+
+----------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

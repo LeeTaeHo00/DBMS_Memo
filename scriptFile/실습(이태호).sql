@@ -1,0 +1,178 @@
+-- 3번 : 서브쿼리 실습
+-- 단일행, 다중행, 연관, 비연관
+-- SELECT, FROM, WHERE 서브쿼리
+-- 연산자, 집계함수
+
+-- 1. 전체 직원 중 급여가 가장 높은 직원의 이름과 급여를 구하기
+-- 단일행 / 비연관
+-- WHERE
+-- MAX(), = 
+
+
+SELECT MAX(e.SALARY)
+FROM EMPLOYEES e; -- 단일행 (1행)
+
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.Salary
+FROM EMPLOYEES e; -- 메인 쿼리(107행)
+
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.Salary
+FROM EMPLOYEES e
+WHERE e.SALARY = 
+(
+	SELECT MAX(SALARY)
+	FROM EMPLOYEES
+);
+
+
+-- 2. 전체 평균 급여보다 많이 받는 직원의 이름과 급여 조회
+-- 단일행 / 비연관
+-- WHERE
+-- AVG(), >=
+
+SELECT AVG(e.SALARY)
+FROM EMPLOYEES e; -- 단일행 (1행)
+
+SELECT  e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.Salary
+FROM EMPLOYEES e; -- 107행(메인쿼리)
+
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.Salary
+FROM EMPLOYEES e
+WHERE e.SALARY >= 
+(
+	SELECT AVG(SALARY)
+	FROM EMPLOYEES
+);
+
+-- 3. IT 부서에 소속된 직원의 이름과 부서ID, 급여 조회
+-- 단일행
+-- WHERE
+-- LIKE 
+
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.DEPARTMENT_ID 부서ID, e.SALARY 급여
+FROM EMPLOYEES e
+WHERE e.JOB_ID LIKE 'IT%';
+
+-- 4. ST_CLERK 직무를 가진 지원의 급여 평균 조회
+-- 단일행
+-- WHERE
+-- =, AVG
+SELECT AVG(e.SALARY)
+FROM EMPLOYEES e
+WHERE e.JOB_ID = 'ST_CLERK';
+
+-- 5. 부서별 최대 급여를 받는 직원들의 이름과 급여, 부서ID 조회
+-- 다중행, 연관
+-- WHERE, ON
+-- =, MAX
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.Salary, e.DEPARTMENT_ID
+FROM EMPLOYEES e 
+	JOIN
+	(
+		SELECT e2.DEPARTMENT_ID, MAX(e2.SALARY) MAX_SALARY
+		FROM EMPLOYEES e2
+		GROUP BY e2.DEPARTMENT_ID
+	) X
+ON e.DEPARTMENT_ID = X.DEPARTMENT_ID
+WHERE e.SALARY = X.MAX_SALARY
+ORDER BY e.DEPARTMENT_ID DESC;
+
+
+-- 6. 부서가 존재하지 않는 직원 조회
+-- 단일
+-- WHERE
+-- IS NULL
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름
+FROM EMPLOYEES e
+WHERE e.DEPARTMENT_ID IS NULL;
+
+SELECT EMPLOYEE_ID, FIRST_NAME, DEPARTMENT_ID
+FROM EMPLOYEES
+WHERE DEPARTMENT_ID NOT IN (SELECT d.DEPARTMENT_ID FROM DEPARTMENTS d)
+OR DEPARTMENT_ID  IS NULL;
+
+SELECT EMPLOYEE_ID, FIRST_NAME, e.DEPARTMENT_ID
+FROM EMPLOYEES e
+WHERE e.DEPARTMENT_ID NOT IN
+(
+	SELECT d.DEPARTMENT_ID
+	FROM DEPARTMENTS d
+)
+OR
+DEPARTMENT_ID  IS NULL;
+
+SELECT EMPLOYEE_ID, FIRST_NAME, e.DEPARTMENT_ID
+FROM EMPLOYEES e
+WHERE NOT EXISTS
+(
+	SELECT 1
+	FROM DEPARTMENTS d
+	WHERE d.DEPARTMENT_ID = e.DEPARTMENT_ID
+);
+
+-- 7. 급여가 평균보다 높은 직원들 중 SA_REP 직무를 가진 사람만 조회
+-- 단일행 / 비연관
+--  WHERE
+-- AND, =, >
+
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.JOB_ID 직무, e.SALARY 급여
+FROM EMPLOYEES e
+WHERE e.SALARY > 
+(
+	SELECT AVG(e2.SALARY)
+	FROM EMPLOYEES e2
+) AND
+e.JOB_ID = 'SA_REP'; 
+
+
+
+-- 8. 평균 급여보다 낮은 사람들의 급여를 20%(*1.2) 인상한 결과 테이블 조회
+--			직원 번호, 이름, 급여, 인상급여
+-- 단일행 / 비연관
+-- WHERE
+-- AVG, <
+
+SELECT e.EMPLOYEE_ID 직원번호, e.FIRST_NAME || ' ' || e.LAST_NAME 이름, e.SALARY 급여, (e.SALARY * 1.2) 인상급여
+FROM EMPLOYEES e
+WHERE e.SALARY < 
+(
+	SELECT AVG(e2.Salary)
+	FROM EMPLOYEES e2
+);
+
+-- 3. ROWNUM
+SELECT ROWNUM, E.* FROM EMPLOYEES E;
+
+SELECT ROWNUM, SALARY FROM EMPLOYEES;
+
+-- EMPLOYEES 테이블에서 SALARY를 내림차순으로 정렬한 뒤 ROWNUM을 붙여서 조회하기
+SELECT ROWNUM, SALARY	-- 2. 컬럼을 조회한 후
+FROM EMPLOYEES			-- 1. 테이블에서
+ORDER BY SALARY DESC;	-- 3. 급여 내림차순으로 출력한다.
+
+SELECT ROWNUM, E2.*
+FROM (SELECT * FROM EMPLOYEES e ORDER BY e.SALARY DESC)E2;
+
+-- 급여 1위 ~ 5위 조회
+SELECT ROWNUM, E2.*
+FROM (SELECT * FROM EMPLOYEES e ORDER BY e.SALARY DESC)E2
+WHERE ROWNUM < 6;
+
+-- 급여 6위 ~ 10위 조회
+SELECT ROWNUM, E2.*
+FROM 
+(
+	SELECT ROWNUM AS RN, E.* 
+	FROM 
+	(
+		SELECT SALARY 
+		FROM EMPLOYEES 
+		ORDER BY SALARY DESC
+	)E 
+	ORDER BY e.SALARY DESC
+)
+E2
+WHERE RN BETWEEN 6 AND 10;
+
+SELECT COUNT(e.EMPLOYEE_ID)
+FROM EMPLOYEES e;
+
