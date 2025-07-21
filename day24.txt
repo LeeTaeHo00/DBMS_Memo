@@ -35,6 +35,8 @@
 
 	SELECT [DISTINCT] 컬럼명 [AS 별칭]
 	FROM 테이블명
+	-> 조인
+	-> 온
 	WHERE 조건식
 	-> GROUP BY 그룹화 기준 컬럼
 	-> HAVING 그룹에 대한 조건식
